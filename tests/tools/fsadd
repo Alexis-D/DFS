@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+curl -d srv=$2 http://names:8000$1 -D - && echo
+

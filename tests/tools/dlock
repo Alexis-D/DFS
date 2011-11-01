@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+curl -X DELETE http://locks:8001$1?lock_id=$2 -D - && echo
+

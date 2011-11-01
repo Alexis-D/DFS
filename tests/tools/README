@@ -1,0 +1,7 @@
+To work this tools assume the following mappings in /etc/hosts:
+
+127.0.0.1	localhost.localdomain	names
+127.0.0.1	localhost.localdomain	locks
+127.0.0.1	localhost.localdomain	fs1
+127.0.0.1	localhost.localdomain	fs2
+

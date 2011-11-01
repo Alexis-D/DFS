@@ -1,0 +1,7 @@
+{
+    "nameserver": "localhost:8000",
+    "lockserver": "localhost:8001",
+    "srv": "localhost:8003",
+    "directories": ["/wtf", "/src/bash", "/src/misc"],
+    "fsroot": "fs2/",
+}

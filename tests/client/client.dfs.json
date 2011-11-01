@@ -1,0 +1,5 @@
+{
+    "nameserver": "names:8000",
+    "lockserver": "locks:8001",
+    "max_size": 1048576
+}

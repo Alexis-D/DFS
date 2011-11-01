@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+curl -d '' http://locks:8001$1 -D - && echo
+

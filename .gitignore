@@ -1,0 +1,5 @@
+*.pyc
+*.db
+tests/fs*/fs*/*
+doc/*
+notes

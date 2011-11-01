@@ -1,0 +1,41 @@
+**DFS**: a simple distributed file system
+=========================================
+
+**DFS** is a distributed file system writtent in Python for which main parts are:
+  - a nameserver (which hold mappings betweens directories names & file servers)
+  - a lockserver (which hold locks about files!)
+  - fileservers (which are responsibles of distributing the files)
+  - a client API (which work more or less like the standard API for files)
+
+Features
+--------
+
+  - each part are independant:
+    - you can develop each part in whatever language you want
+    - you can modify a part without breaking other parts
+  - the nameserver automagically discover fileservers (they just have to contact the nameserver at startup)
+  - use a REST api
+  - automatic locking of files when they're open in write mode
+  - easily extendable (adding more servers, using servers for replication, ...)
+  - dead simple configuration files (five lines of JSON at most)
+  - resistant to failure (you can kill -9 a {file,lock,name}server, it will restart in the same state as when it was killed)
+  - use an upload/download model (so it's more designed for big files, which are just read or just wrote, like in MapReduce for instance, but it doesn't support the append operation of GFS)
+  - (not yet but soon) file caching on client side (the directories/servers pairs are already cached)
+
+Requirements
+------------
+
+  - web.py
+
+Design
+------
+
+I'll make a report to explain the design and my choices as soon as possible.
+
+How to use?
+-----------
+
+There's no documentation for now except the docstrings, also take a look at tests/ to get an idea of how to run the dfs (you'll need to tweak the fileservers config).
+
+It __doesn't aim to be used in production__ (lack of authentification/encryption/file permissions are the main concern obviously). It's a project for my course of distributed systems at the Trinity College of Dublin.
+

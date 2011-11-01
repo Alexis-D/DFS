@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+cd names && ./names.py 8000&
+cd locks && ./locks.py 8001&
+sleep 1 && cd fs1 && ./fs1.py 8002&
+sleep 2 && cd fs2 && ./fs2.py 8003&
+

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+for i in $(ps aux | grep python2 | sed -r "s/  */-/g" | cut -d - -f 2); do kill $i 2>/dev/null; done
+echo
+
