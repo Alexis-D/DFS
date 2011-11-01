@@ -1,7 +1,8 @@
-**DFS**: a simple distributed file system
+DFS: a simple distributed file system
 =========================================
 
 **DFS** is a distributed file system writtent in Python for which main parts are:
+
   - a nameserver (which hold mappings betweens directories names & file servers)
   - a lockserver (which hold locks about files!)
   - fileservers (which are responsibles of distributing the files)
@@ -37,5 +38,5 @@ How to use?
 
 There's no documentation for now except the docstrings, also take a look at tests/ to get an idea of how to run the dfs (you'll need to tweak the fileservers config).
 
-It __doesn't aim to be used in production__ (lack of authentification/encryption/file permissions are the main concern obviously). It's a project for my course of distributed systems at the Trinity College of Dublin.
+It _doesn't aim to be used in production_ (lack of authentification/encryption/file permissions are the main concern obviously). It's a project for my course of distributed systems at the Trinity College of Dublin.
 
