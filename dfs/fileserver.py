@@ -11,9 +11,11 @@ import web
 
 import utils
 
-# TODO comment HEAD + FileServer class...
-
 class FileServer:
+    """Represent a fileserver which is responsible of holding & sharing
+       files.
+    """
+
     def GET(self, filepath):
         """Return the requested file if it's not locked, or if the correct
            lock is provided using the lock_id var.
