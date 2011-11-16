@@ -45,7 +45,7 @@ class File(SpooledTemporaryFile):
                 response = con.getresponse()
                 status = response.status
 
-                if status != 200 and not ('a' in mode and status == 204):
+                if status not in (200, 204):
                     raise DFSIOError('Error (%d) while opening file.' % status)
 
                 if status != 204:
@@ -95,8 +95,10 @@ class File(SpooledTemporaryFile):
             utils.revoke_lock(self.filepath, host, port, self.lock_id)
 
 
-def unlink(filepath):
-    """Delete the file from the filesystem (if possible)."""
+def unlink(filepath, lock_id=None):
+    """Delete the file from the filesystem (if possible).
+
+       If lock_id is provided, it's used to delete the file."""
 
     # ns
     host, port = utils.get_host_port(_config['nameserver'])
@@ -105,7 +107,7 @@ def unlink(filepath):
     host, port = utils.get_host_port(fs)
 
     with closing(HTTPConnection(host, port)) as con:
-        con.request('DELETE', filepath)
+        con.request('DELETE', filepath + '?lock_id=%s' % lock_id)
 
         status = con.getresponse().status
 
@@ -114,9 +116,14 @@ def unlink(filepath):
                              (status, filepath))
 
 
-def rename(filepath):
-    # TODO
-    pass
+def rename(filepath, newfilepath):
+    """Rename filepath to newfilepath."""
+
+    with open(filepath) as f:
+        with open(newfilepath, 'w') as nf:
+            nf.write(f.read())
+
+        unlink(filepath, f.lock_id)
 
 
 open = File
