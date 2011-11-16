@@ -68,17 +68,14 @@ def is_locked(filepath, host, port, lock_id=None):
     """
 
     with closing(HTTPConnection(host, port)) as con:
-        if lock_id is None:
-            con.request('GET', filepath)
-
-        else:
-            con.request('GET', filepath + ('?lock_id=%d' % int(lock_id)))
+        con.request('GET', filepath + ('?lock_id=%s' % lock_id))
 
         r = con.getresponse()
 
     return r.status != 200
 
 
+@memoize
 def get_server(filepath, host, port):
     """Return a server owning filepath.
 
