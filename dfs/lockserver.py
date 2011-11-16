@@ -166,7 +166,7 @@ class LockServer:
             # are no longer valid
             return 'OK'
 
-        else:
+        elif filepath in _locks:
             if 'lock_id' in i:
                 lock_id = i['lock_id']
 
@@ -177,6 +177,9 @@ class LockServer:
                 return 'OK'
 
             raise web.badrequest()
+
+        else:
+            return 'OK'
 
 
 def _lock_expired(filepath):
