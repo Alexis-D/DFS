@@ -88,7 +88,7 @@ class File(SpooledTemporaryFile):
                             data)
 
                 status = con.getresponse().status
-                if con.getresponse().status != 200:
+                if status != 200:
                     raise DFSIOError('Error (%d) while committing change to'
                                      ' the file.' % status)
 
