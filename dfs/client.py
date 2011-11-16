@@ -17,10 +17,10 @@ class File(SpooledTemporaryFile):
        the max_size parameter, otherwise it's stored on the disk.
     """
 
-    def __init__(self, filepath, mode='rt'):
+    def __init__(self, filepath, mode='rtc'):
         """filepath: the path of the distant file
            mode: take the same argument as mode argument of the global
-                 open().
+                 open() + optional flag c (which mean store in cache).
         """
 
         self.mode = mode
@@ -32,7 +32,8 @@ class File(SpooledTemporaryFile):
             raise DFSIOError('Impossible to find a server that serve %s.'
                     % filepath)
 
-        SpooledTemporaryFile.__init__(self, _config['max_size'], mode)
+        self.last_modified = None
+        SpooledTemporaryFile.__init__(self, _config['max_size'], mode.replace('c', ''))
 
         host, port = utils.get_host_port(_config['lockserver'])
         if utils.is_locked(filepath, host, port):
@@ -43,6 +44,7 @@ class File(SpooledTemporaryFile):
             with closing(HTTPConnection(host, port)) as con:
                 con.request('GET', filepath)
                 response = con.getresponse()
+                self.last_modified = response.getheader('Last-Modified')
                 status = response.status
 
                 if status not in (200, 204):
@@ -61,17 +63,42 @@ class File(SpooledTemporaryFile):
             host, port = utils.get_host_port(_config['lockserver'])
             self.lock_id = int(utils.get_lock(filepath, host, port))
 
+        if 'c' in mode:
+            File._cache[filepath] = self
+
     def __exit__(self, exc, value, tb):
         """Send the change to the DFS, and close the file."""
 
+        self.flush()
         self.commit()
-        return SpooledTemporaryFile.__exit__(self, exc, value, tb)
+
+        if 'c' not in self.mode:
+            return SpooledTemporaryFile.__exit__(self, exc, value, tb)
+
+        return False
 
     def close(self):
         """Send the change to the DFS, and close the file."""
 
+        self.flush()
         self.commit()
-        SpooledTemporaryFile.close(self)
+
+        if 'c' not in self.mode:
+            SpooledTemporaryFile.close(self)
+
+    def __del__(self):
+        """If the file isn't closed, close it! and commit changes."""
+
+        if not self.closed:
+            self.flush()
+            self.commit()
+            SpooledTemporaryFile.close(self)
+
+    def flush(self):
+        """Flush the data to the server."""
+
+        SpooledTemporaryFile.flush(self)
+        self.commit()
 
     def commit(self):
         """Send the local file to the remote fileserver."""
@@ -85,7 +112,9 @@ class File(SpooledTemporaryFile):
                 con.request('PUT', self.filepath + '?lock_id=%s' % self.lock_id,
                             data)
 
-                status = con.getresponse().status
+                response = con.getresponse()
+                self.last_modified = response.getheader('Last-Modified')
+                status = response.status
                 if status != 200:
                     raise DFSIOError('Error (%d) while committing change to'
                                      ' the file.' % status)
@@ -93,6 +122,36 @@ class File(SpooledTemporaryFile):
         if self.lock_id is not None:
             host, port = utils.get_host_port(_config['lockserver'])
             utils.revoke_lock(self.filepath, host, port, self.lock_id)
+
+    @staticmethod
+    def from_cache(filepath):
+        """Try to retrieve a file from the cache, the mode isn't specified,
+           it's up to the user to deal with it, otherwise we may have multiple
+           instance of the same file open in different mode.
+
+           filepath: the path of the file to retrieve from cache.
+
+           Return None if the file isn't in the cache or if the cache expired.
+        """
+
+        if filepath in File._cache:
+            f = File._cache[filepath]
+
+            host, port = utils.get_host_port(_config['nameserver'])
+            fs = utils.get_server(filepath, host, port)
+            host, port = utils.get_host_port(fs)
+
+            with closing(HTTPConnection(host, port)) as con:
+                con.request('HEAD', filepath)
+
+                if (f.last_modified ==
+                        con.getresponse().getheader('Last-Modified')):
+                    f.seek(0)
+                    return f
+                else:
+                    del File._cache[filepath]
+
+        return None
 
 
 def unlink(filepath, lock_id=None):
@@ -133,5 +192,6 @@ _config = {
         'lockserver': None,
         'max_size': 1024 ** 2,
          } # default
+File._cache = {}
 utils.load_config(_config, 'client.dfs.json')
 
