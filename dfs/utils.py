@@ -128,6 +128,6 @@ def revoke_lock(filepath, host, port, lock_id):
         con.request('DELETE', filepath + ('?lock_id=%d' % int(lock_id)))
         response = con.getresponse()
 
-    if r.status != 200:
+    if response.status != 200:
         raise Exception('Unable to revoke lock on %s.' % filepath)
 
