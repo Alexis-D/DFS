@@ -223,8 +223,8 @@ def _update_lock(filepath):
     logging.info('Update lock on %s from %s to %s.',
                  filepath, _locks[filepath].last_used, t)
 
-    l = copy.copy(_locks[filepath])
-    l.last_used = l
+    l = _locks[filepath]
+    l = Lock(l.lock_id, l.granted, t)
     _locks[filepath] = l
 
 
