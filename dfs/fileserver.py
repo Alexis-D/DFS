@@ -88,7 +88,7 @@ def _raise_if_locked(filepath):
 
 
 def _raise_if_dir_or_not_servable(filepath):
-    """Raise a 401 unauthorized if the filepath isn't supposed to be
+    """Raise a 406 notacceptable if the filepath isn't supposed to be
        served, or if it's a directory.
     """
 

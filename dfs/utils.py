@@ -6,13 +6,19 @@ import os.path
 from contextlib import closing
 from httplib import HTTPConnection
 
-# TODO comment
 class memoize:
+    """Decorator, equivalent of the Python 3 functools.lru_cache(None)."""
+
     def __init__(self, fn):
+        """fn: the function to decorate."""
+
         self.fn = fn
         self.cache = {}
 
     def __call__(self, *args, **kwds):
+        """Check if we already have the answer and return it, otherwise
+           compute it and store the result."""
+
         key = tuple(args) + tuple(kwds)
 
         if key in self.cache:
@@ -22,6 +28,10 @@ class memoize:
         return self.cache.setdefault(key, ans)
 
     def renew(self, *args, **kwds):
+        """Delete the previous return value of the function for arguments
+           *args & **kwds and recompute the result.
+        """
+
         key = tuple(args) + tuple(kwds)
 
         if key in self.cache:
@@ -69,8 +79,12 @@ def is_locked(filepath, host, port, lock_id=None):
     return r.status != 200
 
 
-# TODO comment
 def get_server(filepath, host, port):
+    """Return a server owning filepath.
+
+       host & port: the address & port of a name server.
+    """
+
     with closing(HTTPConnection(host, port)) as con:
         con.request('GET', filepath)
         response = con.getresponse()
@@ -83,13 +97,20 @@ def get_server(filepath, host, port):
 
 
 def get_lock(filepath, host, port):
+    """Try to get a lock from the lockserver (host, port), if not able
+       to get it, raise an Exception.
+
+       filepath: the file on which we want the lock
+       host & port: the address & port of a lock server.
+    """
+
     with closing(HTTPConnection(host, port)) as con:
         con.request('POST', filepath)
         response = con.getresponse()
         status = response.status
 
         if status != 200:
-            raise Exeption('wtf?')
+            raise Exception('Unable to grant lock on %s.' % filepath)
 
         lock_id = response.read()
 
@@ -97,9 +118,16 @@ def get_lock(filepath, host, port):
 
 
 def revoke_lock(filepath, host, port, lock_id):
+    """Revoke the lock on filepath, if it fails to revoke the lock,
+       raise an Exception.
+
+       host & port: the address & port of a lock server
+       lock_id: the id of the current lock."""
+
     with closing(HTTPConnection(host, port)) as con:
         con.request('DELETE', filepath + ('?lock_id=%d' % int(lock_id)))
-        r = con.getresponse()
+        response = con.getresponse()
 
-    return r.status != 200
+    if r.status != 200:
+        raise Exception('Unable to revoke lock on %s.' % filepath)
 
