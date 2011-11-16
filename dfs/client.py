@@ -6,8 +6,6 @@ from tempfile import SpooledTemporaryFile
 
 import utils
 
-# TODO unlink, rename?, mv
-
 class DFSIOError(IOError):
     """Just represent an error (e.g. fil is locked)."""
 
@@ -95,6 +93,30 @@ class File(SpooledTemporaryFile):
         if self.lock_id is not None:
             host, port = utils.get_host_port(_config['lockserver'])
             utils.revoke_lock(self.filepath, host, port, self.lock_id)
+
+
+def unlink(filepath):
+    """Delete the file from the filesystem (if possible)."""
+
+    # ns
+    host, port = utils.get_host_port(_config['nameserver'])
+    # fs
+    fs = utils.get_server(filepath, host, port)
+    host, port = utils.get_host_port(fs)
+
+    with closing(HTTPConnection(host, port)) as con:
+        con.request('DELETE', filepath)
+
+        status = con.getresponse().status
+
+        if status != 200:
+            raise DFSIOError('Error (%d) while deleting %s.' %
+                             (status, filepath))
+
+
+def rename(filepath):
+    # TODO
+    pass
 
 
 open = File
