@@ -41,6 +41,8 @@ class FileServer:
         with open(p, 'w') as f:
             f.write(web.data())
 
+        web.header('Last-Modified', time.ctime(os.path.getmtime(p)))
+
         return ''
 
     def DELETE(self, filepath):
@@ -58,6 +60,9 @@ class FileServer:
         return 'OK'
 
     def HEAD(self, filepath):
+        """If the file exists/isn't locked, return the last-modified http
+           header which corresponds to the last time was modified."""
+
         web.header('Content-Type', 'text/plain; charset=UTF-8')
 
         _raise_if_dir_or_not_servable(filepath)
