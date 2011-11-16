@@ -3,5 +3,5 @@
     "lockserver": "localhost:8001",
     "srv": "localhost:8003",
     "directories": ["/wtf", "/src/bash", "/src/misc"],
-    "fsroot": "fs2/",
+    "fsroot": "fs2/"
 }
