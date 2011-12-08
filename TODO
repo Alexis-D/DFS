@@ -1,2 +1,3 @@
 Renew lock is possible/needed when retrieving lock from cache.
 Use difflib to send update to fileservers?
+ConfigParser instead of JSON?
