@@ -68,7 +68,10 @@ def is_locked(filepath, host, port, lock_id=None):
     """
 
     with closing(HTTPConnection(host, port)) as con:
-        con.request('GET', filepath + ('?lock_id=%s' % lock_id))
+        if lock_id is not None:
+            filepath += '?lock_id=%s' % lock_id
+
+        con.request('GET', filepath)
 
         r = con.getresponse()
 

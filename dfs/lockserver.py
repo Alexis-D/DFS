@@ -33,6 +33,7 @@ class LockServer:
 
         web.header('Content-Type', 'text/plain; charset=UTF-8')
         filepath = str(filepath)
+        i = web.input()
 
         if filepath == '/':
             # just a list of file=(granted, last_used)
@@ -41,19 +42,11 @@ class LockServer:
                    str(_locks[filepath].last_used),)
                    for filepath in sorted(_locks))
 
-        elif filepath not in _locks:
+        elif filepath not in _locks and 'lock_id' not in i:
             return 'OK'
 
-        lock = _locks[filepath]
-        i = web.input()
-
-        if _lock_expired(filepath):
-            # ok GET shouldn't change the state of server BUT in this
-            # case it just update it because now we know that the lock
-            _revoke_lock(filepath)
-            return 'OK'
-
-        if 'lock_id' in i:
+        elif 'lock_id' in i:
+            lock = _locks.get(filepath, -1)
             try:
                 if int(i['lock_id']) == lock.lock_id:
                     # GET shouldn't be used to change state of server
@@ -72,14 +65,23 @@ class LockServer:
                     # (assuming that the security service is implemented)
                     _update_lock(filepath)
                     return 'OK'
+                else:
+                    raise Exception("Bad lock_id")
 
-            except ValueError as e:
-                logging.exception(e)
-                # lock_id wasn't integer
+            except (Exception, ValueError) as e:
+                # logging.exception(e)
+                _revoke_lock(filepath)
                 raise web.conflict()
+
+        elif _lock_expired(filepath):
+            # ok GET shouldn't change the state of server BUT in this
+            # case it just update it because now we know that the lock
+            _revoke_lock(filepath)
+            return 'OK'
 
         # already locked, or wrong lock_id
         raise web.conflict()
+
 
     def POST(self, filepath):
         """If filepath == / (useless for now, but allow easy addition
@@ -234,8 +236,9 @@ def _update_lock(filepath):
 def _revoke_lock(filepath):
     """Revoke the lock associated to filepath."""
 
-    logging.info('Revoking lock on %s.', filepath)
-    del _locks[filepath]
+    if filepath in _locks:
+        logging.info('Revoking lock on %s.', filepath)
+        del _locks[filepath]
 
 
 _config = {

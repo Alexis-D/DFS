@@ -69,8 +69,7 @@ class File(SpooledTemporaryFile):
     def __exit__(self, exc, value, tb):
         """Send the change to the DFS, and close the file."""
 
-        self.flush()
-        self.commit()
+        self.close()
 
         if 'c' not in self.mode:
             return SpooledTemporaryFile.__exit__(self, exc, value, tb)
@@ -81,7 +80,6 @@ class File(SpooledTemporaryFile):
         """Send the change to the DFS, and close the file."""
 
         self.flush()
-        self.commit()
 
         if 'c' not in self.mode:
             SpooledTemporaryFile.close(self)
