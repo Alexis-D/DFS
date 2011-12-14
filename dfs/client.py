@@ -86,14 +86,6 @@ class File(SpooledTemporaryFile):
         if 'c' not in self.mode:
             SpooledTemporaryFile.close(self)
 
-    def __del__(self):
-        """If the file isn't closed, close it! and commit changes."""
-
-        if not self.closed:
-            self.flush()
-            self.commit()
-            SpooledTemporaryFile.close(self)
-
     def flush(self):
         """Flush the data to the server."""
 
