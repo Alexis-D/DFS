@@ -20,7 +20,8 @@ class LockServer:
 
     def GET(self, filepath):
         """If filepath == '/' just print all the dirs/lock.
-           Else if filepath isn't locked, return 200 OK.
+           Else if filepath isn't locked, return 200 OK (and no lock_id is
+           provided)
 
            Else If lock_id is in the request and filepath is locked with
            this id:
